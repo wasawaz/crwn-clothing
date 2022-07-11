@@ -1,17 +1,20 @@
-import { initializeApp } from "firebase/app";
+import {
+  initializeApp
+} from "firebase/app";
 import {
   getAuth,
   signInWithRedirect,
   signInWithPopup,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword
 } from "firebase/auth";
 
-import { 
-    getFirestore, 
-    doc, 
-    getDoc, 
-    setDoc, 
-    Firestore} from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -38,24 +41,33 @@ export const signInWithGoogleRedirect = () => signInWithRedirect(auth, googlePro
 
 export const db = getFirestore();
 
-export const createUserDocumentFromAuth = async(userAuth) =>{
-    const userDocRef = doc(db, 'users', userAuth.uid);
+export const createUserDocumentFromAuth = async (userAuth) => {
+  if (!userAuth) return;
+  const userDocRef = doc(db, 'users', userAuth.uid);
 
-    const userSnapshot = await getDoc(userDocRef);
-    if(!userSnapshot.exists()){
-        const {displayName, email} = userAuth;
-        const createdAt = new Date();
-        try{
-            await setDoc(userDocRef,{
-                displayName,
-                email,
-                createdAt
-            })
-            
-        }catch(error){
-            console.log('error create the user', error.message)
-            return null;
-        }
+  const userSnapshot = await getDoc(userDocRef);
+  if (!userSnapshot.exists()) {
+    const {
+      displayName,
+      email
+    } = userAuth;
+    const createdAt = new Date();
+    try {
+      await setDoc(userDocRef, {
+        displayName,
+        email,
+        createdAt
+      })
+
+    } catch (error) {
+      console.log('error create the user', error.message)
+      return null;
     }
-    return userDocRef;
+  }
+  return userDocRef;
+}
+
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+  return await createUserWithEmailAndPassword(auth, email, password);
 }
